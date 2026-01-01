@@ -1,0 +1,20 @@
+1. service name: auth service service (jwt token base, access token, refresh token, django session)
+
+2. service name: automatically CV generation [on user request]
+
+3. service name: adverticement section (custom or third party)
+
+4. service name: automatically Result generation [on user request]
+
+5. service name: payments service
+
+6. service name: sms service
+    raised when: registration, forgot password, exam date declaration, exam result publication, notice applied, enrollment statuschecges, admission status changes, on joining an institute, on user role changes, when new session joined, when succesful payment is done
+
+7. service name: notifications service
+    raised when: registration, successful veriification, forgot password, exam date declaration, exam result publication, notice applied, enrollment statuschecges, admission status changes, new curriculumn added, someone comments on post,
+    someone_follow, someone accepts friend request, someone comments, someone sends text, my current institute posts/announcements, payment accomplished, user account status changes, on joining an institute, on user role changes, when new session joined.
+
+8. service name: email service
+    raised when: registration, successful veriification, forgot password, exam date declaration, exam result publication, notice applied, enrollment statuschecges, admission status changes, new curriculumn added, someone comments on post,
+    someone_follow, someone accepts friend request, someone comments, someone sends text, my current institute posts/announcements, payment accomplished, user account status changes, on joining an institute, on user role changes, when new session joined.

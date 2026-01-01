@@ -1,0 +1,87 @@
+table: User
+    fields:
+        uuid
+        profile_uid(o2o)
+        email
+        pass
+        phone_number
+        status
+        type
+        username
+        firstname
+        lastname
+        avatar
+
+    type:
+        super admin
+        intitute admin
+        campus admin
+        student
+        teacher
+        basic user(default)
+        parent
+        staff
+    
+    status:
+        NOT_VERIFIED    
+        ACTIVE
+        DEACTIVED
+        PASS_RESET_REQUIRED
+        BANNED
+        INACTIVE
+
+        note: valid status transition: default status NOT_VERIFIED until a user verifies the email/phone_number
+                                verified users are ACTIVE, from ACTIVE one can not go to unverified, but others can
+            valid type transition: default type is basic_user, from that one can be any except super user
+
+
+table profile:
+    fields:
+        uuid
+        user_id
+        bio
+        address
+        other emails(list)
+        other_phone_numbers(list)
+        profile images(list)
+        birthday
+        gender
+        language
+        timezone
+        websites(list)
+        social links(list)
+        achievements
+        firends(m2m) through model -> friendship
+        school history(m2m) though model -> school_listing
+        cover image
+        resume
+        following_user(m2m)
+        following_institues(m2m)
+        following_departments(m2m)
+        following(club)
+        follwong.....
+        followed_by
+
+table: friendship:
+    fields:
+        from_user(fk)
+        to_user(fk)
+        status (pending, accepted, blocked)
+        accepted_at
+
+table: school_listing
+    fields:
+        from_school
+        to_user
+        status(pending, accepted, blocked, rejected, retired)
+
+
+
+
+
+
+#############################################
+auth work flow: register(user status NOT_VERIFIED) -> verify email/phone(user status ACTIVE) ->
+            craete profile -> take user to edit profile -> dashboard
+            login -> feed
+            log out -> welcome page

@@ -1,0 +1,33 @@
+table: post:
+    fields:
+        uid
+        body
+        sluggs
+        images[list]
+        owner_type (institue, department, user, facility)
+        owner_uid
+        owner_avatar
+        owner_display name
+        comments
+        viewr_count
+        allow comments
+        total_comments
+        total_reactions
+        countdown
+        share_count
+        tags
+        type(post, announcements)
+        location
+
+table: reply:
+    fields:
+    uid
+    post_uid
+    parent_reply
+    type(text, reaction)
+    body
+    tags
+
+
+table: chat service:
+    .....need to complete

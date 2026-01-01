@@ -1,0 +1,276 @@
+table: Base model: 
+    fields:
+        uid
+        display name
+        status(active, inactive)
+        logo
+        cover image
+        achievements
+        code
+        established_date
+        description
+
+
+table: institution:
+    fields:
+        [has base model]
+        owner(fk)
+        title
+        platform (online, offline, hybrid)
+        location metadata(country name, local_language, country code, timezone, city, address_line_1, address_line_2)
+        accredation_metadata(achieve_date, type, id, attachment, etc..)
+        departments(o2m)
+        courses(o2m)
+        language
+        emails(list)
+        websites(list)
+        registration metadata( date, documents, etc)
+        facilities(m2m)
+        inspection_metdata(last inspection date, remark, etc)
+        ranking_metadata(etc...)
+        faculties(o2m)
+        user_rating
+        reveiews(m2m)
+        education levels(list)
+        club(o2m)
+        admission(o2m)
+        type (school, college, university, professional, technical, skill development, research, religious, coaching, tutorial, sports, general)
+    Q: 1. how many institutions a user can join?
+        2. how many instituoan can a user make?
+        3. what to do with leftover data of a student/user
+        4. can a user check old school data?
+
+
+
+table: session:
+    fields:
+        institute_uid(fk)
+        start_date
+        end_date
+        term(semester/ anual/ etc)
+        year
+        session title
+        session status
+
+
+table: departments:
+    fields:
+        [has base model]
+        institute_uid(fk)
+        title
+        session (fk)
+        type( educational, managing body, general, others)
+        department_head_uid(fk)
+        parent_department_uid(fk)
+        emails(list)
+        phone_numbers(list)
+        space_location_metadata(building, floor, room, desk , etc)
+        staffs(m2m)
+        teachers(m2m)
+        courses(m2m)
+        language
+        students(m2m)
+        faculty(m2m)
+        attachments
+        learning ovjectives
+    
+table: courses:
+    fields:
+        [has base model]
+        institute_uid
+        session (fk)
+        department_uid
+        course teacher(fk)
+        schedule(fk)
+        shift
+        course_level(UG, PG, SSC, etc)
+        total_creadit()
+        duration(in days)
+        period pattern(monthly, anual, semester, manual)
+        language
+        course fees
+        attachments
+        learnign_objectives
+
+
+table: curriculumn:
+    fields:
+        course_uid
+        title
+        type(homework, attachment, assignment)
+        start_date
+        end_date
+        attachment
+        submission
+        remarks
+        points
+
+
+table: facalty:
+    fields:
+        [has base model]
+        instition_uid(fk)
+        education levels
+        dean/head
+        attachment
+        members
+
+
+table: club:
+    fields:
+    [has base model]
+    leader
+    student_coordinator
+    attachments
+    type
+    members
+
+table: facilities:
+    fields:
+        description
+        type(
+            smart class room
+            campus
+            laborotory
+            computer laborotory
+            literature club
+            research facility
+            library
+            swimming pool 
+            car parking
+            digital library
+            reference room
+            audatorium room
+            journal subscription
+            wifi
+            online class
+            student common room
+            gaurdian rest room
+            CCTV
+            medical support
+            firesafety
+            gym
+            outdoor sports
+            indoor sports
+            guest house
+            hostel facility
+            food/ dining
+            canteen
+            picnic/tour
+            industrial tour
+            green campus
+            digital attendance
+            ) 
+
+
+
+field: schedule:
+    fields:
+        title
+        saturday_in
+        saturday_out
+        sunday_in
+        sunday_out
+        monday_in
+        monday_out
+        tuesday_in
+        tuesday_out
+        wednessday_in
+        wednessday_out
+        thurstday_in
+        thurstday_out
+        friday_in
+        friday_out
+        time_flexibilty
+
+
+table: enrollment:
+    fields: 
+        uid
+        course_uid (fk)
+        student_uid (fk)
+        session (fk)
+        lecturer_uid (fk)
+        institution_uid (fk)
+        schedule_uid (fk)
+        academic session
+        enrollment date
+        status(pending, accepted, expired, over, pending)
+        result
+        expire_date
+        completion date
+        attendance percentage
+        total attendance
+        scholarship applied
+        payment_status(done, pending)
+        remarks
+
+
+table:admission
+    fields:
+        [has base model]
+        session (fk)
+        user_id
+        faculty_id
+        date fo exam
+        applied_users(m2m)
+        admission_datetime
+        selected_users
+        ........ etc ........
+
+
+
+table: exam:
+    fields:
+        course_uid(fk)
+        examine(m2m)
+        exam date
+        start time
+        end time
+        instition_uid
+        exam title
+        platform( online/ offline)
+        total_marks
+        earned_marks
+        remarks
+        result_publish date
+        earned_score
+        score_sceme(gpa, cgpa)
+
+
+table: complaintbox:
+    fields:
+        type (institute, description, department)
+        raised_to(fk)
+        raised_by
+        title
+        description
+        attachment
+        priority score
+        total votes
+        voted by (fk)
+
+
+
+table: attendance:
+    fields:
+        clock in (list)
+        clock out (list)
+        total duration
+        total break
+        date
+        user_id
+        course_uid
+        institute_uid
+        schedule_uid
+        late arrival timer
+        on_schedule(bool)
+
+
+
+table: noticeboard:
+    field:
+        body
+        notice_to_type(department, course, institute, user)
+        notice_to_uid
+        attachments

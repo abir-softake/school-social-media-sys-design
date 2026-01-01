@@ -1,0 +1,173 @@
+rules: 
+ASGI → Required for real-time
+
+Django Channels → WebSocket handling
+
+WebSocket → Chat, live likes, comments, presence
+
+REST (DRF) → Posts, feeds, pagination
+
+Redis → Channel layer + cache
+
+Cache → Feeds, counts, online users
+
+Signals → Trigger side-effects only
+
+Background tasks → Email, push, heavy work
+
+PostgreSQL → Source of truth
+
+
+In short (Summary)
+Instant → WebSocket
+Delayed → Background Task
+Read-heavy → Cache
+Side-effect → Signal
+
+
+┌─────────────────────────────┐
+│        Client (Web/App)     │
+│─────────────────────────────│
+│ • Posts / Feeds (HTTP)      │
+│ • Likes / Comments (HTTP)   │
+│ • Real-time Chat (WS)       │
+│ • Live Notifications (WS)   │
+└──────────────┬──────────────┘
+               │
+     ┌─────────┴─────────┐
+     │                   │
+HTTP │                   │ WebSocket
+     │                   │
+     ▼                   ▼
+┌───────────────┐   ┌─────────────────┐
+│ Django + DRF  │   │ ASGI Server      │
+│ (REST APIs)  │   │ (Uvicorn/Daphne) │
+└───────┬───────┘   └────────┬────────┘
+        │                    │
+        │                    ▼
+        │            ┌──────────────────┐
+        │            │ Channels Consumer│
+        │            │ • Chat            │
+        │            │ • Live likes      │
+        │            │ • Live comments   │
+        │            │ • Presence        │
+        │            └────────┬─────────┘
+        │                     │
+        │          Pub/Sub    │
+        │                     ▼
+        │              ┌───────────┐
+        │              │   Redis   │
+        │              │───────────│
+        │              │ • Channels│
+        │              │ • Cache   │
+        │              │ • Presence│
+        │              └─────┬─────┘
+        │                    │
+        ▼                    ▼
+┌──────────────────┐   ┌──────────────────┐
+│ PostgreSQL DB    │   │ In-memory Cache  │
+│──────────────────│   │ (Redis)          │
+│ • Users          │   │ • Feeds          │
+│ • Posts          │   │ • Like counts    │
+│ • Messages       │   │ • Comment counts │
+│ • Enrollments    │   │ • Online users   │
+└─────────┬────────┘   └──────────────────┘
+          │
+          │ ORM Save
+          ▼
+┌──────────────────────────┐
+│ Django Signals           │
+│──────────────────────────│
+│ • post_save / m2m_change │
+│ • Trigger side-effects   │
+└──────────┬───────────────┘
+           │
+           │ Trigger async
+           ▼
+┌──────────────────────────┐
+│ Background Tasks         │
+│ (Celery / RQ)            │
+│──────────────────────────│
+│ • Email notifications   │
+│ • Push notifications    │
+│ • Media processing      │
+│ • Analytics logging     │
+│ • Cleanup jobs          │
+└──────────────────────────┘
+
+
+
+
+Role permission (Custom permission class needed):
+
+Overview:
+     - Use RBAC (roles + permissions) with resource ownership checks and optional ACLs.
+     - Default-deny: explicit allow only; admins have elevated inheritence.
+     - Persist roles/permissions in DB tables: `Role`, `Permission`, `RolePermission`, `UserRole`.
+
+Core roles (suggested):
+     - super_admin: full system control (manage roles, institutions, users, global settings)
+     - institute_admin: manage a specific institution (departments, courses, faculty, notices, enrollments)
+     - campus_admin / facility_admin: manage campus-level resources and facilities
+     - teacher: create/manage course content, grade, manage class-specific notices and curriculum
+     - student: view/join courses, submit assignments, view grades, participate in chats/feeds
+     - staff: administrative staff within an institution (limited management of users/facilities)
+     - parent: view child/student progress, receive notifications
+     - basic_user: default authenticated user (create posts, comments, join clubs)
+     - guest: unauthenticated or minimal read-only access
+
+Permission primitives (apply per resource):
+     - create, read, update, delete
+     - manage_members (add/remove users from institution/department/club)
+     - publish (for posts, notices, exam results)
+     - enroll_manage (accept/reject enrollments)
+     - grade_manage (create/modify exam results)
+     - role_assign (assign roles within scoped boundary)
+     - realtime_send (send messages/events over WS)
+     - realtime_manage (create/destroy channels, moderate chat)
+     - attach_manage (upload/remove attachments)
+
+Resource-level examples:
+     - Institution: institute.create/read/update/delete, institute.manage_staff, institute.assign_role
+     - Department: department.create/read/update/delete, department.manage_members
+     - Course: course.create/read/update/delete, course.enroll_manage, course.grade_manage
+     - Post/Notice: post.create/read/update/delete, post.publish, post.comment_manage
+     - Enrollment: enrollment.create/read/update/delete, enrollment.approve/reject
+     - Exam: exam.create/read/update/delete, exam.publish_results
+     - Chat: chat.send, chat.read, chat.moderate, chat.create_channel
+
+Ownership & scope rules:
+     - Owners (resource.creator or institution owner) get implicit manage permissions for that resource.
+     - Scope roles to an institution/campus/department via `role.scope` (e.g., `institute_admin:inst_uid`).
+     - Hierarchical roles: super_admin > institute_admin > campus_admin > teacher/staff > student.
+     - Support temporary permissions (time-limited) for events or ad-hoc tasks.
+
+Real-time specific permissions:
+     - WebSocket channel join: require `realtime_send` or `read` depending on channel type (chat vs notifications).
+     - Presence/online: read-only permission for presence lists; restrict detailed presence to admins/teachers.
+     - Live actions (likes, live comments): require authenticated basic_user with create/read perms for posts.
+     - Rate-limit real-time sends per role to prevent abuse (students vs staff vs admins).
+
+Implementation notes:
+     - Expose permission checks as a reusable guard (middleware for HTTP, permission-check decorator for consumers).
+     - Encode minimal role scopes into JWT access token (`roles:[{"role":"institute_admin","scope":"inst:123"}]`).
+     - Keep permission decisions deterministic and fast: consult cache (Redis) first, fallback to DB.
+     - Audit all role/permission changes (who assigned what, when) for compliance.
+     - Provide admin UI to manage role templates and institution-specific overrides.
+
+Common role mappings (starter defaults):
+     - super_admin: all permissions across all resources.
+     - institute_admin: full CRUD on institution-scoped resources, enroll_manage, role_assign within institution.
+     - campus_admin: CRUD on campus/department, manage facilities, moderate posts in campus scope.
+     - teacher: create/update course content, create notices for their courses/departments, grade_manage.
+     - student: read courses, create posts/comments, realtime_send in course/chat channels, view own grades.
+     - staff: assist institute_admin with user management, facility scheduling, notices (limited CRUD).
+     - parent: read-only for linked student records, receive notifications, view grades/attendance.
+     - basic_user: create/read/update/delete own posts/profile, follow institutions, request admission/enrollment.
+
+Checklist for rollout:
+     - Create DB migrations for Role/Permission tables.
+     - Seed default roles and permission sets.
+     - Implement permission guard for REST endpoints and Channels consumers.
+     - Add JWT role-scope claims and refresh token handling.
+     - Build admin UI for role & scope assignment and auditing.

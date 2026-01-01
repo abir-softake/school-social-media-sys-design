@@ -1,0 +1,24 @@
+table achievements:
+    fields:
+        achivement_from(fk)
+        a_from_type (institute, department, club, etc...)
+        achievemnt_to (fk)
+        date achieved
+        expireration date
+        title
+        description
+        attachment
+
+
+
+table attachments:
+    fields:
+        a_from(fk)
+        a_from_type (institute, department, club, etc...)
+        title
+        description
+        file url
+        expiration date
+
+
+
